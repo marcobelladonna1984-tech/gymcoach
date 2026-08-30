@@ -16,6 +16,11 @@
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
       "description": "Read and write files in the GymCoach project directory."
+    },
+    "composio": {
+      "type": "local",
+      "command": ["npx", "-y", "composio-core", "mcp", "start", "--tools", "YOUTUBE,GOOGLESHEETS,GMAIL,SLACK,NOTION"],
+      "description": "Composio integration hub: YouTube (search/upload), Google Sheets (nutrition export), Gmail (notifications), Slack, Notion. Run `npx composio-core login` once to authenticate via OAuth."
     }
   },
   "model": "anthropic/claude-sonnet-4-5"
