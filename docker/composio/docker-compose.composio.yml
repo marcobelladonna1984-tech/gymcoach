@@ -1,0 +1,27 @@
+# Composio official CLI in a Linux container.
+# Workaround: the official Composio CLI does not support native Windows, so we
+# run it inside a Docker Linux container. Persistence of the OAuth credentials
+# is done via a single-file bind mount of user_data.json (the whole
+# /root/.composio dir holds the immutable binary + runtime, so it is NOT
+# mounted as a volume).
+#
+# Usage:
+#   docker compose -f docker/composio/docker-compose.composio.yml up -d
+#   docker compose -f docker/composio/docker-compose.composio.yml run --rm composio login
+#   docker compose -f docker/composio/docker-compose.composio.yml run --rm composio whoami
+
+services:
+  composio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gymcoach-composio:latest
+    container_name: gymcoach-composio
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      - PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      - ./user_data.json:/root/.composio/user_data.json
+    command: ["tail", "-f", "/dev/null"]

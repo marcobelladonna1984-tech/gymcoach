@@ -1,0 +1,53 @@
+# Agent containers (Linux) to work around the fact that the official Composio
+# CLI does not support native Windows. These containers run opencode and the
+# composio CLI with access to Composio via COMPOSIO_API_KEY read from .env.
+#
+# Prereqs:
+#   - add COMPOSIO_API_KEY=... to gymcoach/.env (from composio.com -> user API key)
+#
+# Usage:
+#   docker compose -f docker-compose.agents.yml build
+#   docker compose -f docker-compose.agents.yml up -d
+#   docker compose -f docker-compose.agents.yml run --rm composio whoami
+#   docker compose -f docker-compose.agents.yml exec opencode opencode --version
+
+services:
+  composio:
+    build:
+      context: docker/composio
+      dockerfile: Dockerfile
+    image: gymcoach-composio:latest
+    container_name: gymcoach-composio
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      - HOME=/root
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY:-}
+      - COMPOSIO_BASE_URL=${COMPOSIO_BASE_URL:-https://backend.composio.dev}
+      - COMPOSIO_LOG_LEVEL=${COMPOSIO_LOG_LEVEL:-info}
+    env_file:
+      - .env
+    volumes:
+      - ./docker/composio/user_data.json:/root/.composio/user_data.json
+    command: ["tail", "-f", "/dev/null"]
+
+  opencode:
+    build:
+      context: docker/opencode
+      dockerfile: Dockerfile
+    image: gymcoach-opencode:latest
+    container_name: gymcoach-opencode
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      - HOME=/root
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY:-}
+      - COMPOSIO_BASE_URL=${COMPOSIO_BASE_URL:-https://backend.composio.dev}
+      - COMPOSIO_LOG_LEVEL=${COMPOSIO_LOG_LEVEL:-info}
+    env_file:
+      - .env
+    volumes:
+      - ./:/workspace
+    command: ["tail", "-f", "/dev/null"]

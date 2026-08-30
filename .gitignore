@@ -25,6 +25,9 @@ dist/
 .env*.local
 /secrets/
 
+# Composio credentials (live API key from `composio login`) - never commit
+docker/composio/user_data.json
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
