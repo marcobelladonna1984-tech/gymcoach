@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": "You are working on GymCoach - a self-hosted fitness tracker with AI coach. Read CLAUDE.md before making any change. Always run `bash scripts/verify.sh` (green-gate) before committing. Stack: Next.js 15 App Router, TypeScript strict, Tailwind, Shadcn UI, Prisma ORM, PostgreSQL 16. Never commit to main. Branch naming: feat/issue-<n>-<slug> or fix/issue-<n>-<slug>.",
+  "mcp": {
+    "gymcoach-db": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "{env:DATABASE_URL}"],
+      "description": "Direct PostgreSQL access to the GymCoach database. Use for schema inspection, data queries and migration debugging."
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "description": "Live documentation for Next.js, Prisma, Tailwind, Shadcn UI, Zod and other dependencies. Always resolve library-id before writing code that uses a dependency."
+    },
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Read and write files in the GymCoach project directory."
+    }
+  },
+  "model": "anthropic/claude-sonnet-4-5"
+}
