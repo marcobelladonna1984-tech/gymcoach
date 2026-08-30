@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { buildCoachPayload } from '@/lib/coach';
+import { buildWeeklyHealthReport } from '@/lib/wellness/report';
 import { buildProgramFromGenerated } from '@/lib/program-generation';
 import { generatedExerciseSchema, generatedProgramSchema } from '@/lib/schemas/program-generation';
 import { programInputSchema } from '@/lib/schemas/program';
@@ -446,6 +447,53 @@ export function createGymCoachMcpServer({ principal, baseUrl }: ServerOptions): 
         db.program.update({ where: { id: programId }, data: { isActive: true } }),
       ]);
       return result({ ok: true, programId, active: true });
+    },
+  );
+
+  server.registerTool(
+    'get_weekly_health_report',
+    {
+      title: 'Get weekly health report',
+      description:
+        'Builds the personal weekly health report from imported data: bodyweight (moving average over the last readings and the change vs the previous period) plus daily steps, sleep and average heart rate over the 7 days ending on reportDate. Omit reportDate to default to today.',
+      inputSchema: {
+        reportDate: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe('End of the 7-day window, YYYY-MM-DD. Defaults to today (UTC).'),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: false, idempotentHint: true },
+    },
+    async ({ reportDate }) => {
+      const endKey = reportDate ?? new Date().toISOString().slice(0, 10);
+      const start = new Date(`${endKey}T00:00:00.000Z`);
+      start.setUTCDate(start.getUTCDate() - 30);
+      const [bodyweight, wellness] = await Promise.all([
+        db.bodyweightEntry.findMany({
+          where: { userId: principal.userId, measuredAt: { gte: start } },
+          orderBy: { measuredAt: 'asc' },
+          select: { measuredAt: true, weightKg: true },
+        }),
+        db.wellnessEntry.findMany({
+          where: { userId: principal.userId, date: { lte: new Date(`${endKey}T00:00:00.000Z`) } },
+          orderBy: { date: 'asc' },
+        }),
+      ]);
+      const report = buildWeeklyHealthReport({
+        reportDate: endKey,
+        bodyweight: bodyweight.map((e) => ({
+          date: e.measuredAt.toISOString().slice(0, 10),
+          weightKg: e.weightKg,
+        })),
+        wellness: wellness.map((w) => ({
+          date: w.date.toISOString().slice(0, 10),
+          steps: w.steps,
+          sleepHours: w.sleepHours,
+          avgHr: w.avgHr,
+        })),
+      });
+      return result({ health: report.health, output: report.output });
     },
   );
 

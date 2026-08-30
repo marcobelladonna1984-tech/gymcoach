@@ -32,6 +32,7 @@ model User {
   readinessCheckins ReadinessCheckin[]
   exerciseGoals     ExerciseGoal[]
   bodyweightEntries BodyweightEntry[]
+  wellnessEntries   WellnessEntry[]
   bodyMeasurements  BodyMeasurement[]
   volumeTargets     VolumeTarget[]
   progressPhotos    ProgressPhoto[]
@@ -400,6 +401,27 @@ model BodyweightEntry {
   note       String?
 
   @@index([userId, measuredAt])
+}
+
+// One row per calendar day of wellness metrics imported from an external
+// source (healthexport / Google Sheet "salute"). Weight is deliberately NOT
+// stored here: it lives in BodyweightEntry (history) and User.bodyweight (the
+// current value), and the import writes both. Steps, sleep and resting/average
+// heart rate have no other home in the schema, so they are kept here, one row
+// per day, merged (last non-null wins) when the same day appears more than
+// once in an import.
+model WellnessEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime @db.Date
+  steps      Int?
+  sleepHours Float?
+  avgHr      Int?
+  source     String?
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }
 
 model BodyMeasurement {
