@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "GymCoach REST API (MCP-server-generator input)",
+    "description": "OpenAPI description of the GymCoach REST routes exposed as MCP tools by servers/gymcoach-server.ts. Scoped to the main categories: bodyweight, workout, import and report. Auth is the GymCoach JWT session cookie (cookie name gymcoach-session); the standalone MCP server forwards it from the GYMCOACH_SESSION_COOKIE environment variable as the Cookie header. The weekly report has no REST route: it is exposed through the GymCoach MCP endpoint (POST /api/mcp, tool get_weekly_health_report), and the generated server delegates to it.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://localhost:3030" }
+  ],
+  "paths": {
+    "/api/bodyweight": {
+      "get": {
+        "summary": "List bodyweight history",
+        "operationId": "listBodyweightEntries",
+        "responses": {
+          "200": {
+            "description": "The user's bodyweight history, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/BodyweightEntry" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Log a bodyweight measurement (kg)",
+        "operationId": "createBodyweightEntry",
+        "description": "Creates a bodyweight entry and re-syncs the user's current bodyweight to the newest entry in the same transaction.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BodyweightInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BodyweightEntry" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bodyweight/{id}": {
+      "delete": {
+        "summary": "Delete a bodyweight entry",
+        "operationId": "deleteBodyweightEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted; the current bodyweight is re-synced to the newest remaining entry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "ok": { "type": "boolean" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/programs/{id}/workouts": {
+      "post": {
+        "summary": "Create a workout in a program",
+        "operationId": "createWorkout",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Program id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/WorkoutInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created (order computed as max + 1)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Workout" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workouts/{id}": {
+      "put": {
+        "summary": "Update a workout",
+        "operationId": "updateWorkout",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/WorkoutInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated (scoped to a program owned by the user)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Workout" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a workout",
+        "operationId": "deleteWorkout",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "ok": { "type": "boolean" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/{format}": {
+      "post": {
+        "summary": "Import training or health data (preview/confirm)",
+        "operationId": "importData",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["health", "gymcoach", "strong", "hevy", "tcx", "gpx", "fit"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ImportRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preview or confirm result",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BodyweightEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "weightKg": { "type": "number" },
+          "measuredAt": { "type": "string", "format": "date-time" },
+          "note": { "type": "string", "nullable": true }
+        }
+      },
+      "BodyweightInput": {
+        "type": "object",
+        "required": ["weightKg"],
+        "properties": {
+          "weightKg": { "type": "number", "minimum": 20, "maximum": 300, "description": "Weight in kg" },
+          "note": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "Workout": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "programId": { "type": "string" },
+          "name": { "type": "string" },
+          "dayOfWeek": { "type": "integer", "minimum": 1, "maximum": 7, "nullable": true },
+          "order": { "type": "integer" }
+        }
+      },
+      "WorkoutInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "dayOfWeek": { "type": "integer", "minimum": 1, "maximum": 7, "nullable": true }
+        }
+      },
+      "ImportRequest": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/HealthImportRequest" },
+          { "$ref": "#/components/schemas/CsvImportRequest" },
+          { "$ref": "#/components/schemas/XmlImportRequest" },
+          { "$ref": "#/components/schemas/FitImportRequest" }
+        ]
+      },
+      "HealthImportRequest": {
+        "type": "object",
+        "required": ["csv", "mode"],
+        "properties": {
+          "csv": { "type": "string", "description": "healthexport / salute CSV text" },
+          "mode": { "type": "string", "enum": ["preview", "confirm"] }
+        }
+      },
+      "CsvImportRequest": {
+        "type": "object",
+        "required": ["csv", "mode"],
+        "properties": {
+          "csv": { "type": "string", "description": "CSV text (gymcoach, strong, hevy)" },
+          "unit": { "type": "string", "enum": ["KG", "LB"], "description": "Strong only" },
+          "mode": { "type": "string", "enum": ["preview", "confirm"] }
+        }
+      },
+      "XmlImportRequest": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
+          "xml": { "type": "string", "description": "TCX XML text" },
+          "gpx": { "type": "string", "description": "GPX XML text" },
+          "mode": { "type": "string", "enum": ["preview", "confirm"] }
+        }
+      },
+      "FitImportRequest": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
+          "fit": { "type": "string", "description": "Base64-encoded FIT file" },
+          "fits": { "type": "array", "items": { "type": "string" }, "description": "Base64-encoded FIT batch" },
+          "mode": { "type": "string", "enum": ["preview", "confirm"] }
+        }
+      }
+    }
+  }
+}
