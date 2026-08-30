@@ -9,5 +9,8 @@ export const navigation = {
   chat: 'Чат',
   programs: 'Программы',
   catalog: 'Упражнения',
+  nutrition: 'Питание',
+  posture: 'Осанка',
+  kitchen: 'Кухня',
   settings: 'Настройки',
 } satisfies MessageShape<typeof english>;

@@ -13,6 +13,9 @@ const LINKS = [
   { href: '/chat', label: 'chat' },
   { href: '/programs', label: 'programs' },
   { href: '/exercises', label: 'catalog' },
+  { href: '/nutrition', label: 'nutrition' },
+  { href: '/posture', label: 'posture' },
+  { href: '/kitchen', label: 'kitchen' },
   { href: '/settings', label: 'settings' },
 ] as const;
 
@@ -29,7 +32,7 @@ export function NavLinks() {
             key={link.href}
             href={link.href}
             className={cn(
-              'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap',
               active
                 ? 'bg-secondary text-secondary-foreground'
                 : 'text-muted-foreground hover:text-foreground',

@@ -6,5 +6,8 @@ export const navigation = {
   chat: 'Chat',
   programs: 'Programs',
   catalog: 'Catalog',
+  nutrition: 'Nutrition',
+  posture: 'Posture',
+  kitchen: 'Kitchen',
   settings: 'Settings',
 };
