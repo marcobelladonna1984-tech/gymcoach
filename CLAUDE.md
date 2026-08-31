@@ -4,6 +4,13 @@ GymCoach is an open source, self-hosted training tracker with a
 built-in AI coach. This file tells any Claude Code agent (interactive or inside
 a loop) how to work in this repo so it does not have to re-derive conventions.
 
+## Quick-start for agents
+
+**Read this file first, then immediately read `docs/agent-skills.md`.**
+That file contains exact Prisma model names, MCP tool patterns, Zod templates,
+library helper locations, branch strategy, and per-tool checklists.
+Do not explore the rest of the repo until you have read both files.
+
 ## What this project is
 
 - **Frontend**: Next.js 15 (App Router), TypeScript strict, Tailwind, Shadcn UI.
@@ -78,6 +85,7 @@ to pass the gate is itself a defect.
 - `prisma/` — schema, migrations, seed.
 - `tests/` — integration (Vitest) and E2E (Playwright).
 - `docs/loops/` — how this repo is maintained by autonomous loops (the playbook).
+- `docs/agent-skills.md` — **agent quick-reference: models, patterns, checklists**.
 - `scripts/verify.sh` — the green-gate.
 
 ## AI layer notes
