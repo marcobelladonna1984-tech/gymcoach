@@ -44,14 +44,20 @@ Prompts:
 
 - `build-training-program`
 
-Read tools:
+Read tools (11 total):
 
 - `get_training_context`
 - `list_exercises`
 - `list_programs`
 - `get_program`
+- `get_weekly_health_report`
+- `get_dashboard_summary`
+- `get_weekly_report`
+- `get_bodyweight_history`
+- `get_next_session`
+- `get_health_summary`
 
-Write tools:
+Write tools (7 total, all require `confirmed: true`):
 
 - `create_program`
 - `update_program_metadata`
@@ -59,6 +65,19 @@ Write tools:
 - `update_program_exercise`
 - `remove_program_exercise`
 - `activate_program`
+- `log_quick_workout`
+
+In total the server exposes **17 tools** (10 read + 6 write, plus the historical
+`get_training_context`/`list_exercises`/`list_programs`/`get_program` reads)
+plus the `gymcoach://instructions/agent` resource and the
+`build-training-program` prompt.
+
+## Discovery endpoint
+
+`GET /mcp/info` is a public, unauthenticated endpoint that reports the MCP
+transport, the endpoint path, the agent instructions, the number of exposed
+tools and their names grouped by read/write. It is meant to be fetched before a
+client connects (or by a human).
 
 ## Health check
 
