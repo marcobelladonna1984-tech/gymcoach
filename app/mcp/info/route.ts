@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 // data and needs no bearer token (issue #331).
 export async function GET(req: Request) {
   const origin = req.headers.get('origin');
+  const base = new URL(req.url).origin;
   return NextResponse.json(
     {
       name: 'GymCoach',
@@ -17,6 +18,43 @@ export async function GET(req: Request) {
       endpoint: '/mcp',
       instructions: GYMCOACH_MCP_INSTRUCTIONS,
       toolCount: MCP_TOOL_NAMES.length,
+      clients: {
+        chatgpt: {
+          type: 'custom-gpt-action',
+          endpoint: `${base}/mcp`,
+          openapi: `${base}/mcp/openapi.json`,
+          auth: 'bearer token from the connector URL (query token or Authorization: Bearer)',
+          notes: 'Configure as a Custom GPT Action using the OpenAPI schema at /mcp/openapi.json, or as an MCP server if your client supports the streamable HTTP transport.',
+        },
+        'claude-desktop': {
+          type: 'mcp-client',
+          endpoint: `${base}/mcp`,
+          transport: 'streamable-http',
+          auth: 'bearer token from the connector URL (query token or Authorization: Bearer)',
+          notes: 'Add as a Streamable HTTP MCP server with the private token.',
+        },
+        cursor: {
+          type: 'mcp-client',
+          endpoint: `${base}/mcp`,
+          transport: 'streamable-http',
+          auth: 'bearer token from the connector URL (query token or Authorization: Bearer)',
+          notes: 'Add as an MCP server under Settings > MCP with the private token.',
+        },
+        opencode: {
+          type: 'mcp-client',
+          endpoint: `${base}/mcp`,
+          transport: 'streamable-http',
+          auth: 'bearer token from the connector URL (query token or Authorization: Bearer)',
+          notes: 'Register as an MCP server in the opencode config with the private token.',
+        },
+        copilot: {
+          type: 'mcp-client',
+          endpoint: `${base}/mcp`,
+          transport: 'streamable-http',
+          auth: 'bearer token from the connector URL (query token or Authorization: Bearer)',
+          notes: 'Register as an MCP server with the private token where Copilot supports MCP servers.',
+        },
+      },
       tools: [
         {
           name: 'read',
